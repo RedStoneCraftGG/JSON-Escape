@@ -28,3 +28,7 @@ go run main.go -m e -i file_name.json -o output_name.json
 ```
 
 Known Issue (GoLang only): During encoding or decoding, the JSON data will be sorted alphabetically. However, all functions will remain fully operational.
+
+## HTML (Web)
+
+Simply open the HTML file in your browser.
