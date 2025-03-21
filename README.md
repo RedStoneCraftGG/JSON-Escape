@@ -11,6 +11,6 @@ py main.go <encode/decode> <input> <output>
 
 Example:
 
-```
+```bash
 py main.go encode file_name.json output_name.json
 ```
