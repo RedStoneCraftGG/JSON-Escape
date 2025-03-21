@@ -6,11 +6,11 @@ An unicode escape sequence encoder/decoder for JSON file. Compatible with Minecr
 **Python:**
 
 ```bash
-py main.go <encode/decode> <input> <output>
+py main.py <encode/decode> <input> <output>
 ```
 
 Example:
 
 ```bash
-py main.go encode file_name.json output_name.json
+py main.py encode file_name.json output_name.json
 ```
