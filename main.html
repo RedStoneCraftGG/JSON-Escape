@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Escape</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transform: translate(-10px);
+        }
+
+        .button-group {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #output {
+            background-color: #f8f8f8;
+        }
+
+        .github-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .github-link a {
+            color: #333;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .github-link a:hover {
+            background-color: #e0e0e0;
+        }
+
+        .github-link i {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>JSON Escape</h2>
+        <textarea id="input" rows="10" placeholder="Enter JSON here..."></textarea>
+        <div class="button-group">
+            <button onclick="encodeJSON()">Encode</button>
+            <button onclick="decodeJSON()">Decode</button>
+        </div>
+        <textarea id="output" rows="10" readonly placeholder="Result will appear here..."></textarea>
+    </div>
+
+    <div class="github-link">
+        <a href="https://github.com/RedStoneCraftGG/JSON-Escape" target="_blank">
+            <i class="fab fa-github"></i>
+            View on GitHub
+        </a>
+    </div>
+
+    <script>
+        function removeComments(jsonStr) {
+            jsonStr = jsonStr.replace(/\/\*[\s\S]*?\*\//g, '');
+            jsonStr = jsonStr.replace(/\/\/.*$/gm, '');
+            jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
+            jsonStr = jsonStr.replace(/^\s*[\r\n]/gm, '');
+            
+            return jsonStr;
+        }
+
+        function encodeJSON() {
+            const input = document.getElementById("input").value;
+            const cleanJSON = removeComments(input);
+            try {
+                const parsed = JSON.parse(cleanJSON);
+                const encoded = JSON.stringify(parsed, (key, value) => {
+                    if (typeof value === 'number' || typeof value === 'boolean') {
+                        return value;
+                    }
+
+                    if (typeof value === 'string') {
+                        let result = '';
+                        for (let i = 0; i < value.length; i++) {
+                            result += '\\u' + value.charCodeAt(i).toString(16).padStart(4, '0');
+                        }
+                        return result;
+                    }
+                    return value;
+                }, 2);
+
+                let result = encoded;
+                const keyRegex = /"([^"]+)":/g;
+                result = result.replace(keyRegex, (match, key) => {
+                    let encodedKey = '';
+                    for (let i = 0; i < key.length; i++) {
+                        encodedKey += '\\u' + key.charCodeAt(i).toString(16).padStart(4, '0');
+                    }
+                    return `"${encodedKey}":`;
+                });
+
+                document.getElementById("output").value = result;
+            } catch (error) {
+                document.getElementById("output").value = "Invalid JSON!";
+            }
+        }
+
+        function decodeJSON() {
+            const input = document.getElementById("input").value;
+            const cleanJSON = removeComments(input);
+            try {
+                const parsed = JSON.parse(cleanJSON);
+                
+                function decodeUnicode(str) {
+                    if (typeof str !== 'string') return str;
+                    return str.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => 
+                        String.fromCharCode(parseInt(hex, 16))
+                    );
+                }
+
+                function decodeObject(obj) {
+                    if (typeof obj === 'string') {
+                        return decodeUnicode(obj);
+                    }
+                    if (Array.isArray(obj)) {
+                        return obj.map(item => decodeObject(item));
+                    }
+                    if (obj && typeof obj === 'object') {
+                        const result = {};
+                        for (const key in obj) {
+                            result[decodeUnicode(key)] = decodeObject(obj[key]);
+                        }
+                        return result;
+                    }
+                    return obj;
+                }
+
+                const decoded = decodeObject(parsed);
+                document.getElementById("output").value = JSON.stringify(decoded, null, 2);
+            } catch (error) {
+                document.getElementById("output").value = "Invalid JSON!";
+            }
+        }
+    </script>
+</body>
+</html>
